@@ -10,9 +10,10 @@ import (
 )
 
 var serv = flag.String("server", "irc.wolfy.me:6667", "hostname and port for irc server to connect to")
-var nick = flag.String("nick", "irc_printer_bot", "nickname for the bot")
+var nick = flag.String("nick", "irc_bot", "nickname for the bot")
 
 // -info trigger
+/*
 var infoMessage = hbot.Trigger{
 	Condition: func(bot *hbot.Bot, m *hbot.Message) bool {
 		return m.Command == "PRIVMSG" && m.Content == "-info"
@@ -22,6 +23,7 @@ var infoMessage = hbot.Trigger{
 		return false
 	},
 }
+*/
 
 // Logger
 var logger = hbot.Trigger{
@@ -31,12 +33,12 @@ var logger = hbot.Trigger{
 	Action: func(irc *hbot.Bot, m *hbot.Message) bool {
 		server := *serv
 		go func(server string, channel string, user string, content string) {
-			file, err := os.OpenFile(server+"."+channel[1:]+".log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+			file, err := os.OpenFile("/var/log/"+server+"."+channel[1:]+".log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 			if err != nil {
 				log.Fatal(err)
 			}
 			log.SetOutput(file)
-		
+
 			fmt.Println("<"+user+">: "+content)
 			log.Println("<"+user+">: "+content)
 		}(server[:len(server)-5], m.To, m.From, m.Content)
@@ -58,7 +60,7 @@ func main() {
 		panic(err)
 	}
 
-	irc.AddTrigger(infoMessage)
+	//irc.AddTrigger(infoMessage)
 	irc.AddTrigger(logger)
 
 	irc.Run()
