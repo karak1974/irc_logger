@@ -11,7 +11,7 @@ import (
 
 var serv = flag.String("server", "irc.ircnet.com:6667", "hostname and port for irc server to connect to")
 var nick = flag.String("nick", "camp_printer", "nickname for the bot")
-var enters = flag.Int("enters", 7, "New lines before messages")
+var enters = flag.Int("enters", 0, "New lines before messages")
 
 func printMessage(msg string) {
 	conn, err := net.Dial("tcp", "172.16.0.28:9100")
@@ -27,7 +27,7 @@ func printMessage(msg string) {
 		fmt.Println("Error sending data:", err)
 		return
 	}
-	// This is necessarry to see the message on the printer
+	// How many new line do we want print between messages
 	for i := 0; i < *enters; i++ {
 		_, err = fmt.Fprintf(conn, "\n")
 		if err != nil {
@@ -82,7 +82,6 @@ var logMessage = hbot.Trigger{
 			msg = fmt.Sprintf("<%s><%s>: %s", m.To, m.From, m.Content)
 		}
 
-		fmt.Println(msg)
 		printMessage(msg)
 		return false
 	},
