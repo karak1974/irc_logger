@@ -9,9 +9,13 @@ import (
 	log "gopkg.in/inconshreveable/log15.v2"
 )
 
-var serv = flag.String("server", "irc.ircnet.com:6667", "hostname and port for irc server to connect to")
-var nick = flag.String("nick", "camp_printer", "nickname for the bot")
-var enters = flag.Int("enters", 0, "New lines before messages")
+const BOTNAME = "hsbot"
+
+var (
+	serv   = flag.String("server", "irc.atw-inter.net:6667", "hostname and port for irc server to connect to")
+	nick   = flag.String("nick", "testbot", "nickname for the bot")
+	enters = flag.Int("enters", 0, "New lines before messages")
+)
 
 func printMessage(msg string) {
 	conn, err := net.Dial("tcp", "172.16.0.28:9100")
@@ -44,7 +48,7 @@ func main() {
 		bot.HijackSession = true
 	}
 	channels := func(bot *hbot.Bot) {
-		bot.Channels = []string{"#camp++"}
+		bot.Channels = []string{"#camp++printer"}
 	}
 	irc, err := hbot.NewBot(*serv, *nick, hijackSession, channels)
 	if err != nil {
@@ -76,10 +80,12 @@ var logMessage = hbot.Trigger{
 	},
 	Action: func(irc *hbot.Bot, m *hbot.Message) bool {
 		var msg string
-		if m.To == *nick {
-			msg = fmt.Sprintf("<%s><%s>: %s", "Private", m.From, m.Content)
+		if m.From == BOTNAME {
+			// From bridge
+			msg = m.Content
 		} else {
-			msg = fmt.Sprintf("<%s><%s>: %s", m.To, m.From, m.Content)
+			// Directly on irc
+			msg = fmt.Sprintf("<%s> %s", m.From, m.Content)
 		}
 
 		printMessage(msg)
