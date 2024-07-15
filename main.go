@@ -65,24 +65,11 @@ func main() {
 		panic(err)
 	}
 
-	irc.AddTrigger(sayInfoMessage)
 	irc.AddTrigger(logMessage)
 	irc.Logger.SetHandler(log.StdoutHandler)
 
 	irc.Run()
 	fmt.Println("Bot shutting down.")
-}
-
-// TODO Consider remove this
-var sayInfoMessage = hbot.Trigger{
-	Condition: func(bot *hbot.Bot, m *hbot.Message) bool {
-		return m.Command == "PRIVMSG" && m.Content == "-info"
-	},
-	Action: func(irc *hbot.Bot, m *hbot.Message) bool {
-		// Reply, but also logged
-		irc.Reply(m, "I'm a printer in the hackcenter, Wolfy is my creator")
-		return false
-	},
 }
 
 var logMessage = hbot.Trigger{
