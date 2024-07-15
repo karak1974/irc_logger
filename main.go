@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"regexp"
 
 	hbot "github.com/whyrusleeping/hellabot"
 	log "gopkg.in/inconshreveable/log15.v2"
@@ -12,10 +13,19 @@ import (
 const BOTNAME = "hsbot"
 
 var (
-	serv   = flag.String("server", "irc.atw-inter.net:6667", "hostname and port for irc server to connect to")
-	nick   = flag.String("nick", "testbot", "nickname for the bot")
-	enters = flag.Int("enters", 0, "New lines before messages")
+	serv       = flag.String("server", "irc.atw-inter.net:6667", "hostname and port for irc server to connect to")
+	nick       = flag.String("nick", "printer", "nickname for the bot")
+	enters     = flag.Int("enters", 0, "New lines before messages")
+	lastAuthor = ""
 )
+
+func extractAuthor(input string) string {
+	pattern := `<([^>]*)>`
+	re := regexp.MustCompile(pattern)
+	matches := re.FindStringSubmatch(input)
+
+	return matches[1]
+}
 
 func printMessage(msg string) {
 	conn, err := net.Dial("tcp", "172.16.0.28:9100")
@@ -63,6 +73,7 @@ func main() {
 	fmt.Println("Bot shutting down.")
 }
 
+// TODO Consider remove this
 var sayInfoMessage = hbot.Trigger{
 	Condition: func(bot *hbot.Bot, m *hbot.Message) bool {
 		return m.Command == "PRIVMSG" && m.Content == "-info"
@@ -82,10 +93,21 @@ var logMessage = hbot.Trigger{
 		var msg string
 		if m.From == BOTNAME {
 			// From bridge
-			msg = m.Content
+			author := extractAuthor(m.Content)
+			if lastAuthor == author {
+				msg = m.Content[(len(author) + 3):]
+			} else {
+				msg = m.Content
+			}
+			lastAuthor = author
 		} else {
 			// Directly on irc
-			msg = fmt.Sprintf("<%s> %s", m.From, m.Content)
+			if lastAuthor == m.From {
+				msg = m.Content
+			} else {
+				msg = fmt.Sprintf("<%s> %s", m.From, m.Content)
+			}
+			lastAuthor = m.From
 		}
 
 		printMessage(msg)
